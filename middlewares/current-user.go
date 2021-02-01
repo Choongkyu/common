@@ -8,17 +8,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// Interface is a middleware
-type Interface interface {
-	Middleware(next http.Handler) http.Handler
-}
-
-// CurrentUser is a struct
-type CurrentUser struct {
-	id    string
-	email string
-}
-
 type key int
 
 // KeyCurrentUser is a key
@@ -35,10 +24,6 @@ func Middleware(next http.Handler) http.Handler {
 		if !token.Valid || !ok {
 			http.Error(w, "Bad jwt", http.StatusBadRequest)
 		}
-		// currentUser := &CurrentUser{
-		// 	id:    "fewf",
-		// 	email: "foo",
-		// }
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), KeyCurrentUser, currentUser)))
 	})
 }
