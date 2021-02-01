@@ -20,12 +20,14 @@ func Middleware(next http.Handler) http.Handler {
 		if err != nil {
 			if err == http.ErrNoCookie {
 				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), KeyCurrentUser, jwt.MapClaims{})))
+				return
 			}
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		currentUser, ok := token.Claims.(jwt.MapClaims)
 		if !token.Valid || !ok {
 			http.Error(w, "Bad jwt", http.StatusBadRequest)
+			return
 		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), KeyCurrentUser, currentUser)))
 	})
