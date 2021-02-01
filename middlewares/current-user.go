@@ -18,6 +18,9 @@ func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := verifyToken(r)
 		if err != nil {
+			if err == http.ErrNoCookie {
+				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), KeyCurrentUser, jwt.MapClaims{})))
+			}
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		currentUser, ok := token.Claims.(jwt.MapClaims)
@@ -31,7 +34,7 @@ func Middleware(next http.Handler) http.Handler {
 func verifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString, err := r.Cookie("mux")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	token, err := jwt.Parse(tokenString.Value, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_KEY")), nil
